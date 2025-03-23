@@ -9,7 +9,8 @@ async def fetch_notes():
         "contact_list_subscription",
         {
             "kinds": [3],
-            "authors": ["4c5d5379a066339c88f6e101e3edb1fbaee4ede3eea35ffc6f1c664b3a4383ee"]
+            "authors": ["4c5d5379a066339c88f6e101e3edb1fbaee4ede3eea35ffc6f1c664b3a4383ee"],
+            "limit": 100
         }
     ])
     uri = "wss://yabu.me"
