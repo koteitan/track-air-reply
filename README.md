@@ -2,26 +2,17 @@
 
 ## 目的
 
-このプロジェクトの目的は、最新の Nostr のノートに対して、それがどのノートのエアリプなのかを推測することです。
+最新の Nostr の note1 に対して、それがどの note1 のエアリプなのかを推定します
 
-## プロジェクトのセットアップと使用方法
+## つかいかた
 
 ## インストール
 
 `estimate-related-notes.py` スクリプトを実行するには、以下の依存関係をインストールする必要があります。
 
-1. **MeCab**: 日本語形態素解析器。システムに MeCab システムライブラリをインストールする必要があります。パッケージマネージャーを使用してインストールできます。例えば、Ubuntu では以下のコマンドを使用します。
    ```bash
    sudo apt-get install mecab libmecab-dev mecab-ipadic-utf8
-   ```
-
-2. **Python モジュール**: pip を使用して必要な Python モジュールをインストールします。
-   ```bash
    pip install websockets mecab-python3 gensim
-   ```
-
-3. **Word Vector データ**: 以下のコマンドを使用してデータをダウンロードし、解凍します。
-   ```bash
    wget http://www.cl.ecei.tohoku.ac.jp/~m-suzuki/jawiki_vector/data/20170201.tar.bz2
    tar -xvjf 20170201.tar.bz2
    ```
