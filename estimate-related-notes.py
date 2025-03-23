@@ -1,26 +1,67 @@
 import asyncio
+import json
 import websockets
 import json
 from datetime import datetime
 import MeCab
 from gensim.models import KeyedVectors
 
-async def fetch_notes():
+async def make_pub2name(relay, limit=400):
+    pub2name = {}
+    print("Fetching kind 0 events to build pub2name mapping...")
+    print("Initial pub2name:", pub2name)
+    last_created_at = 0
+    gotevent = 0
+    while True:
+        gotevent_cur = 0
+        kind0_message = json.dumps([
+            "REQ",
+            "kind0_subscription",
+            {
+                "kinds": [0],
+                "limit": limit,
+                "since": last_created_at+1
+            }
+        ])
+        async with websockets.connect(relay) as websocket:
+            await websocket.send(kind0_message)
+            async for message in websocket:
+                response = json.loads(message)
+                if response[0] == "EVENT" and response[1] == "kind0_subscription":
+                    content = json.loads(response[2]['content'])
+                    pubkey = response[2]['pubkey']
+                    name = content.get('name', 'Unknown')
+                    pub2name[pubkey] = name
+                    last_created_at = max(last_created_at, response[2]['created_at'])
+                    #print("--------------------")
+                    #print("pub2name[", pubkey, "]=", name)
+                    #print(message)
+                    #print("--------------------")
+                    gotevent_cur += 1
+                    gotevent += 1
+                if response[0] == "EOSE" and response[1] == "kind0_subscription":
+                    print(f"Got {gotevent} profiles...")
+                    break
+            # close when empty
+            if gotevent_cur == 0:
+                break
+    return pub2name
+
+async def fetch_notes(relay, mainid, limit=100):
     contents = []
     created_at = []
-    names = []
+    pubkeys = []
     print("Fetching contact list from Nostr...")
     contact_list_message = json.dumps([
         "REQ",
         "contact_list_subscription",
         {
             "kinds": [3],
-            "authors": ["4c5d5379a066339c88f6e101e3edb1fbaee4ede3eea35ffc6f1c664b3a4383ee"],
-            "limit": 100
+            "authors": [mainid],
+            "limit": 1
         }
     ])
-    uri = "wss://yabu.me"
-    async with websockets.connect(uri) as websocket:
+    async with websockets.connect(relay) as websocket:
         # Send a request to get the contact list
         await websocket.send(contact_list_message)
 
@@ -29,7 +70,7 @@ async def fetch_notes():
             response = json.loads(message)
 #            print(message)
             if response[0] == "EVENT" and response[1] == "contact_list_subscription":
-                pubkeys = [contact[1] for contact in response[2]['tags'] if contact[0] == 'p']
+                followlist = [contact[1] for contact in response[2]['tags'] if contact[0] == 'p']
                 # Close the contact list subscription
                 close_message = json.dumps(["CLOSE", "contact_list_subscription"])
                 await websocket.send(close_message)
@@ -41,7 +82,8 @@ async def fetch_notes():
             "note_subscription",
             {
                 "kinds": [1],
-#                "authors": pubkeys
+                "authors": followlist,
+                "limit": limit
             }
         ])
         await websocket.send(subscribe_message)
@@ -54,11 +96,12 @@ async def fetch_notes():
             if note[0] == "EVENT" and note[1] == "note_subscription":
                 contents.append(note[2]['content'])
                 created_at.append(note[2]['created_at'])
+                pubkeys.append(note[2]['pubkey'])
 #                print('created_at=', note[2]['created_at'])
 #                print('content=', content)
             if note[0] == "EOSE" and note[1] == "note_subscription":
                 break
-    return [contents, created_at]
+    return pubkeys, contents, created_at
 
 def compute_context_vector(contents):
     print("Loading word2vec model...")
@@ -85,22 +128,37 @@ def compute_context_vector(contents):
     top = [index_similarities[-i] for i in range(1, n + 1)]
     return top, sorted_similarities
 
-[contents, created_at] = asyncio.run(fetch_notes())
-contents = [content.replace('\n', ' ') for content in contents]
-for i in range(len(created_at)):
-    created_at[i] = datetime.fromtimestamp(created_at[i]).strftime('%Y-%m-%d %H:%M:%S')
 
+# main ----------------------------------------------------
+async def main():
+    relay = "wss://yabu.me"
+    mainid = "4c5d5379a066339c88f6e101e3edb1fbaee4ede3eea35ffc6f1c664b3a4383ee"
 
-print("--------------------")
-print("Latest content:", created_at[0], ":", contents[0])
-print("--------------------")
+    pub2name = await make_pub2name(relay)
+    pubkeys, contents, created_at = await fetch_notes(relay, mainid)
 
-top, sorted_similarities = compute_context_vector(contents)
+    contents = [content.replace('\n', ' ') for content in contents]
+    for i in range(len(created_at)):
+        created_at[i] = datetime.fromtimestamp(created_at[i]).strftime('%Y-%m-%d %H:%M:%S')
 
-print("--------------------")
-print("Latest content:", created_at[0], ":", contents[0])
-for i in top:
+    latest_pubkey = pubkeys[0]
+    # replace the latest_pubkey with the name (if unknown, use 10 letters of pubkey)
+    latest_name = pub2name.get(latest_pubkey, latest_pubkey[:10])
+    #print(pub2name)
+    #print("main id = ", pub2name.get(mainid, "Unknown"))
+    #print("latest_pubkey = <", latest_pubkey, ">")
+    #print("mainid        = <", mainid, ">")
     print("--------------------")
-    print(f"Related content {i + 1} (similarity: {sorted_similarities[-1 - top.index(i)]}): {created_at[i]}:", contents[i])
-print("--------------------")
+    print(f"Latest content: {latest_name}:{created_at[0]}:{contents[0]}")
+    print("--------------------")
 
+    top, sorted_similarities = compute_context_vector(contents)
+
+    for i in top:
+        related_pubkey = pubkeys[i]
+        related_name = pub2name.get(related_pubkey, related_pubkey[:10])
+        print("--------------------")
+        print(f"Related content({sorted_similarities[-1 - top.index(i)]:.3f}):{related_name}:{created_at[i]}:{contents[i]}")
+    print("--------------------")
+
+asyncio.run(main())
