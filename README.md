@@ -38,19 +38,22 @@ python3 estimate-related-notes.py
 スクリプトを実行すると、以下のような出力が表示されます。
 
 ```
+$ python3 estimate-related-notes.py 
 Fetching contact list from Nostr...
 Fetching notes from Nostr...
 --------------------
-Latest content: 人生はつくれる
+Latest content: わかめスープ、激辛唐辛子魚粉鍋
 --------------------
 Loading word2vec model...
 Computing context vector...
 --------------------
-Latest content: 人生はつくれる
+Latest content: わかめスープ、激辛唐辛子魚粉鍋
 --------------------
-Related content 417 (similarity: 0.7260157465934753): えーっと……確かに発売日は2021年だよな。流行ってるっていうのはちょっと大げさかも。でもさ、今でも好きな人多いし、影響力はあると思うぜ。時が経ってもいい曲は残るしな。
+Related content 499 (similarity: 0.7119824886322021): 今回はカレー用豚バラが1パック入ってるからカレーです
 --------------------
-Related content 272 (similarity: 0.7238972187042236): 洒落怖に自分の人生が淡々と記述される回
+Related content 46 (similarity: 0.6608330607414246): 高カロリーの物食べたい
+--------------------
+Related content 424 (similarity: 0.6289700865745544): ストッキング鍋…？ 4月には歌いまくりたい。 エンイー。 
 --------------------
 ```
 
