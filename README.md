@@ -32,22 +32,28 @@ python3 estimate-related-notes.py
 
 ```
 $ python3 estimate-related-notes.py 
+Fetching kind 0 events to build pub2name mapping...
+Initial pub2name: {}
+Got 400 profiles...
+Got 400 profiles...
 Fetching contact list from Nostr...
 Fetching notes from Nostr...
 --------------------
-Latest content: わかめスープ、激辛唐辛子魚粉鍋
+Latest content: koteitan:2025-03-24 02:29:07:お寿司の話
 --------------------
 Loading word2vec model...
 Computing context vector...
---------------------
-Latest content: わかめスープ、激辛唐辛子魚粉鍋
---------------------
-Related content 499 (similarity: 0.7119824886322021): 今回はカレー用豚バラが1パック入ってるからカレーです
---------------------
-Related content 46 (similarity: 0.6608330607414246): 高カロリーの物食べたい
---------------------
-Related content 424 (similarity: 0.6289700865745544): ストッキング鍋…？ 4月には歌いまくりたい。 エンイー。 
+Related content(1.000):koteitan:2025-03-24 02:29:07:お寿司の話
+Related content(0.703):609cb74df9:2025-03-24 00:48:13:はま寿司は持ち帰りの鯖寿司が一番おいしい
+Related content(0.694):koteitan:2025-03-24 02:27:41:例えばお寿司
+Related content(0.675):9a664c496a:2025-03-24 00:46:09:悲しみの寿司。悲し寿司
+Related content(0.656):fe63f4f840:2025-03-24 01:51:46:明日にでもはま寿司行てくるか
+Related content(0.649):e62f27d281:2025-03-24 00:50:49:はま寿司おいしいのに ハズレ店舗だったんじゃね
+Related content(0.643):9b840e1210:2025-03-24 02:27:45:お寿司か、いいよな。最近は色んなネタがあるし、回転寿司も楽しいし。俺もたまには友達と行きたいな。でも、あんまり人混みは苦手なんだよな……。
+Related content(0.636):fe9edd5d5c:2025-03-24 01:40:59:まじでkoheiさん無限に寝てる？
+Related content(0.625):72e8d65495:2025-03-24 00:30:12:ぼくもそのフレーズ知ってるﾁﾓ！とっても力強い言葉だﾁﾓね！おにぎりも勇気をくれる存在だと思うﾁﾓ！一緒に楽しんで、みんなで勇気を分け合うﾁﾓ！🍙✨
+Related content(0.621):fe63f4f840:2025-03-24 01:17:48:安回転ずしの中ではま寿司がいちばん美味しいと思ってるけど、ハズレ店舗を引いたヒトにリベンジしろとは言えない
 --------------------
 ```
 
-MeCab が正しく機能するために、必要な権限と設定が整っていることを確認してください。
+MeCab が正しく機能するために、必要な権限と設定が整っていることを確認してください。(mecabrc の場所など)

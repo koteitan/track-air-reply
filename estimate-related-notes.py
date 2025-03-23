@@ -157,7 +157,6 @@ async def main():
     for i in top:
         related_pubkey = pubkeys[i]
         related_name = pub2name.get(related_pubkey, related_pubkey[:10])
-        print("--------------------")
         print(f"Related content({sorted_similarities[-1 - top.index(i)]:.3f}):{related_name}:{created_at[i]}:{contents[i]}")
     print("--------------------")
 
