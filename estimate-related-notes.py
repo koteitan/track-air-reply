@@ -1,9 +1,14 @@
 import asyncio
 import websockets
 import json
+from datetime import datetime
+import MeCab
+from gensim.models import KeyedVectors
 
 async def fetch_notes():
     contents = []
+    created_at = []
+    names = []
     print("Fetching contact list from Nostr...")
     contact_list_message = json.dumps([
         "REQ",
@@ -47,23 +52,20 @@ async def fetch_notes():
             #            print(message)
             note = json.loads(message)
             if note[0] == "EVENT" and note[1] == "note_subscription":
-                content = note[2]['content']
-                contents.append(content)
+                contents.append(note[2]['content'])
+                created_at.append(note[2]['created_at'])
 #                print('created_at=', note[2]['created_at'])
 #                print('content=', content)
             if note[0] == "EOSE" and note[1] == "note_subscription":
                 break
-    return contents
-
-import MeCab
-from gensim.models import KeyedVectors
+    return [contents, created_at]
 
 def compute_context_vector(contents):
     print("Loading word2vec model...")
     model = KeyedVectors.load_word2vec_format("entity_vector/entity_vector.model.bin", binary=True)
     print("Computing context vector...")
     mecab = MeCab.Tagger("-r /etc/mecabrc -Owakati")
-    latest_content = contents[-1]
+    latest_content = contents[0]
     x = []
     # compute similarity between the latest content and the rest (omit the latest content)
     latest_tokens = mecab.parse(latest_content).strip().split()
@@ -83,18 +85,22 @@ def compute_context_vector(contents):
     top = [index_similarities[-i] for i in range(1, n + 1)]
     return top, sorted_similarities
 
-contents = asyncio.run(fetch_notes())
+[contents, created_at] = asyncio.run(fetch_notes())
 contents = [content.replace('\n', ' ') for content in contents]
+for i in range(len(created_at)):
+    created_at[i] = datetime.fromtimestamp(created_at[i]).strftime('%Y-%m-%d %H:%M:%S')
+
+
 print("--------------------")
-print("Latest content:", contents[-1])
+print("Latest content:", created_at[0], ":", contents[0])
 print("--------------------")
 
 top, sorted_similarities = compute_context_vector(contents)
-#print related top contents with similarities
+
 print("--------------------")
-print("Latest content:", contents[-1])
+print("Latest content:", created_at[0], ":", contents[0])
 for i in top:
     print("--------------------")
-    print(f"Related content {i + 1} (similarity: {sorted_similarities[-1 - top.index(i)]}):", contents[i])
+    print(f"Related content {i + 1} (similarity: {sorted_similarities[-1 - top.index(i)]}): {created_at[i]}:", contents[i])
 print("--------------------")
 
